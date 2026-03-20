@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Insurance Knowledge Nuggets</title>
+<link rel="stylesheet" href="css/global.css">
+<style>
+
+  html, body { height: 100%; overflow-x: hidden; }
+  body {
+    display: flex;
+    flex-direction: column;
+    background: #0c0c0f;
+  }
+
+  /* ── Subtle background glow ──────────────────────────────── */
+  .bg-layer {
+    position: fixed; inset: 0;
+    pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 105%, rgba(200,155,40,0.09) 0%, transparent 60%),
+      radial-gradient(ellipse 45% 35% at 85% 5%,   rgba(200,155,40,0.04) 0%, transparent 55%);
+  }
+
+  /* ── Nav bar ─────────────────────────────────────────────── */
+  .landing-nav {
+    position: relative; z-index: 10;
+    display: flex; align-items: center;
+    padding: 0 2rem;
+    height: 56px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+  .nav-brand {
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 700;
+    color: #e2c06a;
+    letter-spacing: 0.01em;
+  }
+  .nav-spacer { flex: 1; }
+  .nav-signin {
+    font-size: 13px;
+    font-weight: 500;
+    color: #c8c5be;
+    text-decoration: none;
+    padding: 7px 16px;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(255,255,255,0.18);
+    transition: all 0.15s;
+  }
+  .nav-signin:hover {
+    color: #f0ede6;
+    border-color: rgba(255,255,255,0.32);
+    background: rgba(255,255,255,0.06);
+  }
+
+  /* ── Hero layout ─────────────────────────────────────────── */
+  .hero {
+    position: relative; z-index: 1;
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 420px;
+    align-items: center;
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 3.5rem 2rem 3rem;
+    width: 100%;
+  }
+
+  /* ── Left column ─────────────────────────────────────────── */
+  .hero-text {
+    padding-right: 3rem;
+    animation: fadeLeft 0.6s ease both;
+  }
+  @keyframes fadeLeft {
+    from { opacity: 0; transform: translateX(-20px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  /* Eyebrow label */
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #e2c06a;
+    margin-bottom: 1.1rem;
+  }
+  .eyebrow-pip {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: #e2c06a;
+    animation: pulse-gold 2.8s ease-in-out infinite;
+  }
+
+  /* Logo GIF — replaces the text headline */
+  .logo-gif {
+    display: block;
+    width: min(400px, 100%);
+    height: auto;
+    margin-bottom: 1.6rem;
+  }
+
+  /* Body copy */
+  .body-copy {
+    font-size: 17px;
+    line-height: 1.78;
+    color: #d4d0c9;   /* noticeably lighter than before */
+    max-width: 430px;
+    margin-bottom: 2.5rem;
+  }
+
+  /* CTA row */
+  .cta-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 2.75rem;
+  }
+  .cta-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    background: #c8a84b;
+    color: #0a0800;
+    padding: 13px 26px;
+    border-radius: 9px;
+    font-family: var(--font-body);
+    font-size: 15px;
+    font-weight: 700;
+    text-decoration: none;
+    letter-spacing: 0.01em;
+    transition: background 0.15s, transform 0.12s;
+    white-space: nowrap;
+  }
+  .cta-primary:hover { background: #e2c06a; color: #0a0800; transform: translateY(-1px); }
+  .cta-arrow { transition: transform 0.15s; display: inline-block; }
+  .cta-primary:hover .cta-arrow { transform: translateX(3px); }
+
+  .cta-secondary {
+    font-size: 14px;
+    color: #c8c5be;   /* much lighter than var(--text2) */
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.15s;
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+  }
+  .cta-secondary:hover { color: #f0ede6; border-bottom-color: rgba(255,255,255,0.35); }
+
+  /* Topic chips */
+  .topic-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .topic-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 14px;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.13);
+    border-radius: 22px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #ccc9c2;   /* lighter than before — was #b0ada6 */
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+  }
+  .topic-chip:hover {
+    border-color: rgba(200,168,75,0.4);
+    background: rgba(200,168,75,0.07);
+    color: #f0ede6;
+  }
+
+  /* ── Right column: mascot ────────────────────────────────── */
+  .hero-mascot {
+    position: relative;
+    animation: fadeRight 0.6s 0.1s ease both;
+  }
+  @keyframes fadeRight {
+    from { opacity: 0; transform: translateX(20px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  .mascot-glow {
+    position: absolute;
+    bottom: -4%; left: 50%;
+    transform: translateX(-50%);
+    width: 70%; height: 38%;
+    background: radial-gradient(ellipse, rgba(200,148,30,0.22) 0%, transparent 70%);
+    border-radius: 50%;
+    filter: blur(24px);
+    animation: glowPulse 4.5s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes glowPulse {
+    0%, 100% { opacity: 0.55; }
+    50%       { opacity: 1; }
+  }
+
+  .mascot-img {
+    width: 100%; height: auto;
+    display: block;
+    position: relative; z-index: 1;
+    filter: drop-shadow(0 20px 44px rgba(0,0,0,0.7));
+    animation: float 5.5s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-13px); }
+  }
+
+  /* Floating callout badges */
+  .badge-float {
+    position: absolute; z-index: 2;
+    background: rgba(16,15,12,0.88);
+    border: 1px solid rgba(200,168,75,0.28);
+    border-radius: 10px;
+    padding: 10px 15px;
+    backdrop-filter: blur(10px);
+    white-space: nowrap;
+  }
+  .bf-value {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 19px; font-weight: 700;
+    color: #e2c06a;
+    line-height: 1; margin-bottom: 2px;
+  }
+  .bf-label {
+    font-size: 11px;
+    color: #c8c5be;   /* lighter */
+    font-weight: 500;
+  }
+  .badge-float-tl {
+    top: 20%; left: -10%;
+    animation: badgeFloat 6s ease-in-out infinite;
+  }
+  .badge-float-br {
+    bottom: 26%; right: -8%;
+    animation: badgeFloat 6s 2.2s ease-in-out infinite;
+  }
+  @keyframes badgeFloat {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-8px); }
+  }
+
+  /* ── Stats strip ─────────────────────────────────────────── */
+  .stats-row {
+    position: relative; z-index: 1;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    background: rgba(255,255,255,0.03);
+    border-top: 1px solid rgba(255,255,255,0.07);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    animation: fadeUp 0.5s 0.3s ease both;
+  }
+  .stat-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.25rem 3rem;
+    border-right: 1px solid rgba(255,255,255,0.07);
+  }
+  .stat-cell:last-child { border-right: none; }
+  .stat-val {
+    font-family: var(--font-display);
+    font-size: 24px; font-weight: 700;
+    color: #e2c06a;
+    line-height: 1; margin-bottom: 5px;
+  }
+  .stat-lbl {
+    font-size: 12px;
+    color: #c0bdb6;   /* lighter — was var(--text2) */
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  /* ── Footer ──────────────────────────────────────────────── */
+  footer {
+    position: relative; z-index: 1;
+    text-align: center;
+    padding: 1.1rem;
+    font-size: 12px;
+    color: #7a7872;   /* slightly lighter than var(--text3) */
+  }
+  footer a { color: #c8c5be; }
+  footer a:hover { color: #e2c06a; }
+
+  /* ── Responsive ──────────────────────────────────────────── */
+  @media (max-width: 720px) {
+    .hero {
+      grid-template-columns: 1fr;
+      padding: 2.5rem 1.5rem 2rem;
+      text-align: center;
+      gap: 2rem;
+    }
+    .hero-text { padding-right: 0; order: 2; }
+    .hero-mascot { order: 1; max-width: 280px; margin: 0 auto; }
+    .logo-gif { margin-left: auto; margin-right: auto; }
+    .body-copy { margin-left: auto; margin-right: auto; font-size: 16px; }
+    .cta-row { justify-content: center; }
+    .topic-row { justify-content: center; }
+    .badge-float { display: none; }
+    .stat-cell { padding: 1rem 1.5rem; }
+    .landing-nav { padding: 0 1.25rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-layer"></div>
+
+<!-- Minimal nav -->
+<nav class="landing-nav">
+  <div class="nav-brand">Insurance Knowledge Nuggets</div>
+  <div class="nav-spacer"></div>
+  <a href="nuggets.html" class="nav-signin">Sign in</a>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+
+  <!-- Left: text -->
+  <div class="hero-text">
+
+    <div class="eyebrow">
+      <span class="eyebrow-pip"></span>
+      knowledgenuggets.netlify.app
+    </div>
+
+    <!-- Logo GIF in place of the text headline -->
+    <img
+      src="I_N_S_U_R_A_N_C_E.gif"
+      alt="Insurance Knowledge Nuggets"
+      class="logo-gif"
+    >
+
+    <p class="body-copy">
+      Sharpen your insurance knowledge with focused quizzes on CGL and
+      commercial property — complete with instant per-answer feedback,
+      full answer keys, and automatic progress tracking.
+    </p>
+
+    <div class="cta-row">
+      <a href="nuggets.html" class="cta-primary">
+        Start a quiz <span class="cta-arrow">→</span>
+      </a>
+      <a href="nuggets.html" class="cta-secondary">Create a free account</a>
+    </div>
+
+    <div class="topic-row">
+      <div class="topic-chip">🏢 Commercial General Liability</div>
+      <div class="topic-chip">🏗️ Commercial Property</div>
+      <div class="topic-chip">✅ Per-answer feedback</div>
+      <div class="topic-chip">📊 Progress tracking</div>
+    </div>
+
+  </div>
+
+  <!-- Right: mascot -->
+  <div class="hero-mascot">
+    <div class="mascot-glow"></div>
+
+    <div class="badge-float badge-float-tl">
+      <span class="bf-value">2</span>
+      <span class="bf-label">Quiz topics</span>
+    </div>
+
+    <img
+      src="Knowledge_Nugget.png"
+      alt="The Knowledge Nugget mascot — a cheerful golden nugget wearing a graduation cap, holding a book and a glowing lightbulb"
+      class="mascot-img"
+    >
+
+    <div class="badge-float badge-float-br">
+      <span class="bf-value">5 pts</span>
+      <span class="bf-label">Per question</span>
+    </div>
+  </div>
+
+</section>
+
+<!-- Stats strip -->
+<div class="stats-row">
+  <div class="stat-cell">
+    <div class="stat-val">15+</div>
+    <div class="stat-lbl">Questions</div>
+  </div>
+  <div class="stat-cell">
+    <div class="stat-val">2</div>
+    <div class="stat-lbl">Coverage topics</div>
+  </div>
+  <div class="stat-cell">
+    <div class="stat-val">100%</div>
+    <div class="stat-lbl">Answer feedback</div>
+  </div>
+  <div class="stat-cell">
+    <div class="stat-val">Free</div>
+    <div class="stat-lbl">Always</div>
+  </div>
+</div>
+
+<footer>
+  &copy; <span id="yr"></span> Insurance Knowledge Nuggets &nbsp;·&nbsp;
+  <a href="nuggets.html">Sign in</a> &nbsp;·&nbsp;
+  <a href="quizzes.html">Quizzes</a>
+</footer>
+
+<script>document.getElementById('yr').textContent = new Date().getFullYear();</script>
+</body>
+</html>

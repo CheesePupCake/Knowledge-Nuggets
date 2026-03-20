@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz — Insurance Knowledge Nuggets</title>
+<link rel="stylesheet" href="css/global.css">
+<style>
+  .quiz-header {
+    padding: 1.75rem 1.25rem 1.5rem;
+    max-width: 760px;
+    margin: 0 auto;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0.5rem;
+  }
+  .quiz-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 0.6rem; flex-wrap: wrap; }
+  .quiz-title { font-family: var(--font-display); font-size: clamp(20px, 4vw, 28px); font-weight: 700; }
+
+  .score-sticky {
+    position: sticky; top: 52px; z-index: 50;
+    background: rgba(9,9,11,0.92);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 1.25rem;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .score-sticky-label { font-size: 12px; color: var(--text2); }
+  .score-sticky-val   { font-family: var(--font-display); font-size: 15px; color: var(--gold); margin-left: auto; }
+  .progress-track { flex: 1; height: 3px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; }
+  .progress-fill  { height: 100%; background: var(--gold); border-radius: 2px; transition: width 0.4s ease; }
+
+  .quiz-wrap { max-width: 760px; margin: 0 auto; padding: 1.25rem 1.25rem 4rem; }
+
+  .q-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    margin-bottom: 1.25rem;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .q-card.state-correct { border-color: var(--success-bd); }
+  .q-card.state-wrong   { border-color: var(--error-bd); }
+
+  .q-head {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 1.25rem 1.25rem 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .q-num {
+    flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%;
+    border: 1.5px solid rgba(200,168,75,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 600; color: var(--gold); margin-top: 2px;
+  }
+  .q-text { flex: 1; font-size: 15px; font-weight: 500; line-height: 1.5; }
+  .q-pts  { flex-shrink: 0; font-size: 11px; color: var(--text2); margin-top: 4px; }
+
+  .options { padding: 0.75rem 1.25rem 1rem; display: flex; flex-direction: column; gap: 7px; }
+
+  .opt {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 9px 13px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); cursor: pointer;
+    background: var(--surface2);
+    transition: background 0.12s, border-color 0.12s;
+  }
+  .opt:hover { border-color: rgba(200,168,75,0.3); background: rgba(200,168,75,0.05); }
+
+  .opt-marker {
+    flex-shrink: 0; width: 18px; height: 18px; border-radius: 50%;
+    border: 1.5px solid rgba(255,255,255,0.18); margin-top: 2px;
+    transition: all 0.12s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .opt.sel .opt-marker { border-color: var(--gold); background: var(--gold); }
+  .opt.sel .opt-marker::after {
+    content: ''; width: 6px; height: 6px; border-radius: 50%; background: #0a0800;
+  }
+  .opt-text { font-size: 14px; line-height: 1.5; }
+
+  .opt.rev-correct { background: var(--success-bg); border-color: var(--success-bd); }
+  .opt.rev-wrong   { background: var(--error-bg);   border-color: var(--error-bd); }
+  .opt.rev-show    { background: var(--success-bg); border-color: var(--success-bd); }
+  .opt.rev-correct .opt-text { color: var(--success-tx); font-weight: 500; }
+  .opt.rev-wrong   .opt-text { color: var(--error-tx);   font-weight: 500; }
+  .opt.rev-show    .opt-text { color: var(--success-tx); }
+
+  .feedback {
+    margin: 0 1.25rem 0.75rem;
+    border-radius: var(--radius-sm);
+    padding: 9px 13px;
+    font-size: 13px;
+    line-height: 1.6;
+    display: none;
+  }
+  .feedback.correct { background: var(--success-bg); border: 1px solid var(--success-bd); color: var(--success-tx); }
+  .feedback.wrong   { background: var(--error-bg);   border: 1px solid var(--error-bd);   color: var(--error-tx); }
+
+  .answer-key {
+    margin: 0 1.25rem 1rem;
+    background: rgba(200,168,75,0.06);
+    border: 1px solid rgba(200,168,75,0.2);
+    border-radius: var(--radius-sm);
+    padding: 9px 13px;
+    font-size: 13px;
+    color: var(--text2);
+    display: none;
+  }
+  .answer-key strong { color: var(--gold2); }
+
+  .q-action { padding: 0 1.25rem 1.25rem; }
+
+  .btn-check {
+    background: var(--gold); color: #0a0800; border: none;
+    border-radius: var(--radius-sm); padding: 8px 18px;
+    font-family: var(--font-body); font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .btn-check:hover { background: var(--gold2); }
+  .btn-check:disabled { opacity: 0.3; cursor: default; }
+  .btn-check.state-correct { background: var(--success-bg); color: var(--success-tx); border: 1px solid var(--success-bd); }
+  .btn-check.state-wrong   { background: var(--error-bg);   color: var(--error-tx);   border: 1px solid var(--error-bd); }
+
+  /* result banner */
+  .result-banner {
+    background: var(--surface);
+    border: 1px solid rgba(200,168,75,0.25);
+    border-radius: var(--radius-lg);
+    padding: 2.5rem;
+    text-align: center;
+    margin-bottom: 2rem;
+    display: none;
+    position: relative;
+    overflow: hidden;
+  }
+  .result-banner::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+  .result-banner.visible { display: block; }
+  .result-score {
+    font-family: var(--font-display);
+    font-size: 64px; font-weight: 700;
+    color: var(--gold2); line-height: 1; margin-bottom: 0.25rem;
+  }
+  .result-total { font-size: 14px; color: var(--text2); margin-bottom: 1rem; }
+  .result-msg { font-size: 16px; font-weight: 500; color: var(--text); }
+
+  .submit-row { text-align: center; padding-bottom: 3rem; }
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-brand">Knowledge Nuggets</div>
+  <div class="topnav-spacer"></div>
+  <a href="quizzes.html" class="btn btn-ghost btn-sm">← All quizzes</a>
+</nav>
+
+<div class="score-sticky">
+  <span class="score-sticky-label">Progress</span>
+  <div class="progress-track"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
+  <span class="score-sticky-val" id="scoreVal">0 pts</span>
+</div>
+
+<div class="quiz-header">
+  <div class="quiz-meta" id="quizMeta"></div>
+  <h1 class="quiz-title" id="quizTitle">Loading…</h1>
+</div>
+
+<div class="quiz-wrap">
+  <div class="result-banner" id="resultBanner">
+    <div class="result-score" id="resultScore">—</div>
+    <div class="result-total" id="resultTotal"></div>
+    <div class="result-msg"  id="resultMsg"></div>
+  </div>
+
+  <div id="questionsContainer"></div>
+
+  <div class="submit-row">
+    <button class="btn btn-outline btn-lg" id="submitBtn" onclick="submitQuiz()">Submit quiz</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/quiz-data.js"></script>
+<script>
+firebase.initializeApp(FIREBASE_CONFIG);
+const auth = firebase.auth();
+const db   = firebase.firestore();
+
+const params  = new URLSearchParams(window.location.search);
+const quizId  = params.get('id');
+const quiz    = QUIZ_LIBRARY.find(q => q.id === quizId);
+
+if (!quiz) {
+  document.getElementById('quizTitle').textContent = 'Quiz not found.';
+}
+
+let currentUser = null;
+let answered = {};
+let score = 0;
+const maxScore = quiz ? quiz.questions.length * 5 : 0;
+
+auth.onAuthStateChanged(user => {
+  if (!user) { window.location.href = 'nuggets.html'; return; }
+  currentUser = user;
+  if (quiz) init();
+});
+
+function init() {
+  const diffColor = { Foundational: 'badge-green', Intermediate: 'badge-blue', Advanced: 'badge-gold' };
+  document.getElementById('quizTitle').textContent = quiz.title;
+  document.getElementById('quizMeta').innerHTML = `
+    <span class="badge ${diffColor[quiz.difficulty] || 'badge-gray'}">${quiz.difficulty}</span>
+    <span class="badge badge-gray">${quiz.category}</span>
+    <span class="badge badge-gray">${quiz.questions.length} questions · ${maxScore} pts total</span>
+  `;
+  buildQuestions();
+}
+
+function buildQuestions() {
+  const c = document.getElementById('questionsContainer');
+  quiz.questions.forEach((q, i) => {
+    const card = document.createElement('div');
+    card.className = 'q-card';
+    card.id = `qc-${i}`;
+    const opts = q.options.map((o, j) => `
+      <div class="opt" id="opt-${i}-${j}" onclick="selectOpt(${i},${j})">
+        <div class="opt-marker"></div>
+        <span class="opt-text">${o}</span>
+      </div>
+    `).join('');
+    card.innerHTML = `
+      <div class="q-head">
+        <div class="q-num">${i+1}</div>
+        <div class="q-text">${q.q}</div>
+        <div class="q-pts">5 pts</div>
+      </div>
+      <div class="options">${opts}</div>
+      <div class="feedback" id="fb-${i}"></div>
+      <div class="answer-key" id="ak-${i}"><strong>Answer key:</strong> ${q.key}</div>
+      <div class="q-action">
+        <button class="btn-check" id="btn-${i}" onclick="checkAnswer(${i})" disabled>Check answer</button>
+      </div>
+    `;
+    c.appendChild(card);
+  });
+}
+
+function selectOpt(qi, oi) {
+  if (answered[qi] !== undefined) return;
+  for (let j = 0; j < quiz.questions[qi].options.length; j++) {
+    document.getElementById(`opt-${qi}-${j}`).classList.remove('sel');
+  }
+  document.getElementById(`opt-${qi}-${oi}`).classList.add('sel');
+  document.getElementById(`btn-${qi}`).disabled = false;
+}
+
+async function checkAnswer(qi) {
+  if (answered[qi] !== undefined) return;
+  const q = quiz.questions[qi];
+  const selEl = document.querySelector(`#qc-${qi} .opt.sel`);
+  if (!selEl) return;
+  const oi = parseInt(selEl.id.split('-')[2]);
+  const correct = q.answer;
+  const isRight = oi === correct;
+
+  answered[qi] = isRight ? 5 : 0;
+  if (isRight) score += 5;
+
+  const card = document.getElementById(`qc-${qi}`);
+  card.classList.add(isRight ? 'state-correct' : 'state-wrong');
+
+  q.options.forEach((_, j) => {
+    const el = document.getElementById(`opt-${qi}-${j}`);
+    el.style.cursor = 'default';
+    el.onclick = null;
+    el.classList.remove('sel');
+    if (j === correct && isRight) el.classList.add('rev-correct');
+    else if (j === correct)       el.classList.add('rev-show');
+    else if (j === oi && !isRight) el.classList.add('rev-wrong');
+  });
+
+  const fb = document.getElementById(`fb-${qi}`);
+  fb.textContent = q.feedback[oi];
+  fb.className = `feedback ${isRight ? 'correct' : 'wrong'}`;
+  fb.style.display = 'block';
+  document.getElementById(`ak-${qi}`).style.display = 'block';
+
+  const btn = document.getElementById(`btn-${qi}`);
+  btn.disabled = true;
+  btn.textContent = isRight ? '✓ Correct' : '✗ Incorrect';
+  btn.className = `btn-check ${isRight ? 'state-correct' : 'state-wrong'}`;
+
+  updateProgress();
+  await saveProgress(false);
+}
+
+function updateProgress() {
+  const done = Object.keys(answered).length;
+  const pct = (done / quiz.questions.length) * 100;
+  document.getElementById('progFill').style.width = pct + '%';
+  document.getElementById('scoreVal').textContent = score + ' pts';
+}
+
+async function saveProgress(completed) {
+  if (!currentUser) return;
+  const answered_count = Object.keys(answered).length;
+  const pct = answered_count ? (score / maxScore * 100) : 0;
+  await db.collection('users').doc(currentUser.uid)
+    .collection('results').doc(quizId).set({
+      quizId,
+      quizTitle: quiz.title,
+      score,
+      maxScore,
+      pct: parseFloat(pct.toFixed(1)),
+      answered: answered_count,
+      totalQ: quiz.questions.length,
+      completed,
+      lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+
+  // Also write to top-level results collection for admin tracking
+  await db.collection('results').add({
+    uid: currentUser.uid,
+    email: currentUser.email,
+    displayName: currentUser.displayName || currentUser.email,
+    quizId,
+    quizTitle: quiz.title,
+    score,
+    maxScore,
+    pct: parseFloat(pct.toFixed(1)),
+    answeredAt: firebase.firestore.FieldValue.serverTimestamp(),
+    completed
+  }).catch(() => {});
+}
+
+async function submitQuiz() {
+  const pct = maxScore ? Math.round(score / maxScore * 100) : 0;
+  let msg;
+  if (pct >= 90) msg = 'Outstanding — excellent command of this subject.';
+  else if (pct >= 75) msg = 'Strong performance — review the missed items above.';
+  else if (pct >= 60) msg = 'Passing — some gaps remain; revisit the answer keys.';
+  else msg = 'More study needed — focus on coverage structure and key exclusions.';
+
+  document.getElementById('resultScore').textContent = score;
+  document.getElementById('resultTotal').textContent = `out of ${maxScore} points (${pct}%)`;
+  document.getElementById('resultMsg').textContent = msg;
+  document.getElementById('resultBanner').classList.add('visible');
+  document.getElementById('submitBtn').disabled = true;
+  document.getElementById('submitBtn').textContent = 'Submitted';
+  document.getElementById('resultBanner').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  await saveProgress(true);
+}
+</script>
+</body>
+</html>

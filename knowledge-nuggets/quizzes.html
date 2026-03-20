@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quizzes — Insurance Knowledge Nuggets</title>
+<link rel="stylesheet" href="css/global.css">
+<style>
+  .page-hero {
+    padding: 3rem 1.25rem 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .page-hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 60% 60% at 50% 120%, rgba(200,168,75,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .page-hero-inner { position: relative; max-width: 900px; margin: 0 auto; }
+  .page-title { font-size: clamp(22px, 4vw, 32px); font-weight: 700; margin-bottom: 0.4rem; }
+  .page-sub { color: var(--text2); font-size: 14px; }
+
+  .quiz-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+    gap: 1.1rem;
+    padding: 0 1.25rem 4rem;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .quiz-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.4rem;
+    cursor: pointer;
+    transition: border-color 0.15s, transform 0.15s;
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+    display: block;
+    color: inherit;
+  }
+  .quiz-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(200,168,75,0.25), transparent);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .quiz-card:hover { border-color: rgba(200,168,75,0.3); transform: translateY(-2px); }
+  .quiz-card:hover::before { opacity: 1; }
+
+  .quiz-card-icon {
+    font-size: 28px;
+    margin-bottom: 0.75rem;
+    display: block;
+  }
+  .quiz-card-title {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+    color: var(--text);
+  }
+  .quiz-card-sub {
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.5;
+    margin-bottom: 1rem;
+  }
+  .quiz-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .quiz-card-progress {
+    margin-top: 0.9rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--border);
+  }
+  .progress-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text2);
+    margin-bottom: 5px;
+  }
+  .progress-bar {
+    height: 3px;
+    background: var(--surface3);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--gold);
+    border-radius: 2px;
+    transition: width 0.6s ease;
+  }
+
+  .status-badge {
+    position: absolute;
+    top: 1rem; right: 1rem;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 20px;
+  }
+  .status-complete { background: rgba(40,100,60,0.3); color: #6fcf97; border: 1px solid #2a6640; }
+  .status-started  { background: rgba(200,168,75,0.12); color: var(--gold); border: 1px solid rgba(200,168,75,0.25); }
+
+  .scores-section {
+    max-width: 900px;
+    margin: 0 auto 2rem;
+    padding: 0 1.25rem;
+  }
+  .section-label {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+  }
+  .stats-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    flex: 1;
+    min-width: 120px;
+  }
+  .stat-value {
+    font-family: var(--font-display);
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--gold2);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat-label { font-size: 12px; color: var(--text2); }
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-brand">Knowledge Nuggets <span>/ Quizzes</span></div>
+  <div class="topnav-spacer"></div>
+  <div class="topnav-user">
+    <div class="topnav-avatar" id="navAvatar">?</div>
+    <span id="navName" style="display:none"></span>
+  </div>
+  <button class="btn btn-ghost btn-sm" id="adminBtn" style="display:none" onclick="window.location.href='admin.html'">Admin</button>
+  <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign out</button>
+</nav>
+
+<div class="page-hero">
+  <div class="page-hero-inner">
+    <h1 class="page-title">Choose a Quiz</h1>
+    <p class="page-sub">Select any topic below. Your progress is saved automatically.</p>
+  </div>
+</div>
+
+<div class="scores-section" id="statsSection" style="display:none">
+  <div class="section-label">Your stats</div>
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-value" id="statCompleted">0</div><div class="stat-label">Quizzes completed</div></div>
+    <div class="stat-card"><div class="stat-value" id="statAvgScore">—</div><div class="stat-label">Average score</div></div>
+    <div class="stat-card"><div class="stat-value" id="statTotalPts">0</div><div class="stat-label">Total points earned</div></div>
+    <div class="stat-card"><div class="stat-value" id="statStreak">0</div><div class="stat-label">Questions answered</div></div>
+  </div>
+</div>
+
+<div class="quiz-grid" id="quizGrid"></div>
+
+<div id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/quiz-data.js"></script>
+<script>
+firebase.initializeApp(FIREBASE_CONFIG);
+const auth = firebase.auth();
+const db   = firebase.firestore();
+
+let currentUser = null;
+let userResults = {};
+
+auth.onAuthStateChanged(async user => {
+  if (!user) { window.location.href = 'nuggets.html'; return; }
+  currentUser = user;
+  const initials = (user.displayName || user.email || '?').charAt(0).toUpperCase();
+  document.getElementById('navAvatar').textContent = initials;
+  document.getElementById('navName').textContent = user.displayName || user.email;
+
+  // Check admin
+  const userDoc = await db.collection('users').doc(user.uid).get();
+  if (userDoc.exists && userDoc.data().role === 'admin') {
+    document.getElementById('adminBtn').style.display = 'inline-flex';
+  }
+
+  await loadResults();
+  renderStats();
+  renderQuizzes();
+  document.getElementById('statsSection').style.display = 'block';
+});
+
+async function loadResults() {
+  const snap = await db.collection('users').doc(currentUser.uid)
+    .collection('results').get();
+  snap.forEach(doc => { userResults[doc.id] = doc.data(); });
+}
+
+function renderStats() {
+  const completed = Object.keys(userResults).length;
+  const scores = Object.values(userResults).map(r => r.pct).filter(Boolean);
+  const avg = scores.length ? Math.round(scores.reduce((a,b) => a+b, 0) / scores.length) : null;
+  const totalPts = Object.values(userResults).reduce((a,r) => a + (r.score||0), 0);
+  const totalQ   = Object.values(userResults).reduce((a,r) => a + (r.answered||0), 0);
+
+  document.getElementById('statCompleted').textContent = completed;
+  document.getElementById('statAvgScore').textContent  = avg !== null ? avg + '%' : '—';
+  document.getElementById('statTotalPts').textContent  = totalPts;
+  document.getElementById('statStreak').textContent    = totalQ;
+}
+
+function renderQuizzes() {
+  const grid = document.getElementById('quizGrid');
+  grid.innerHTML = '';
+
+  QUIZ_LIBRARY.forEach(quiz => {
+    const res = userResults[quiz.id];
+    const pct = res ? Math.round(res.pct) : 0;
+    const isComplete = res && res.completed;
+    const isStarted  = res && !res.completed && res.answered > 0;
+
+    const diffColor = { Foundational: 'badge-green', Intermediate: 'badge-blue', Advanced: 'badge-gold' };
+
+    const card = document.createElement('a');
+    card.href = `quiz.html?id=${quiz.id}`;
+    card.className = 'quiz-card fade-up';
+    card.innerHTML = `
+      ${isComplete ? '<div class="status-badge status-complete">Complete</div>' :
+        isStarted  ? '<div class="status-badge status-started">In progress</div>' : ''}
+      <span class="quiz-card-icon">${quiz.icon}</span>
+      <div class="quiz-card-title">${quiz.title}</div>
+      <div class="quiz-card-sub">${quiz.subtitle}</div>
+      <div class="quiz-card-meta">
+        <span class="badge ${diffColor[quiz.difficulty] || 'badge-gray'}">${quiz.difficulty}</span>
+        <span class="badge badge-gray">${quiz.category}</span>
+        <span class="badge badge-gray">${quiz.questions.length}Q</span>
+      </div>
+      ${res ? `
+      <div class="quiz-card-progress">
+        <div class="progress-row">
+          <span>${res.answered || 0} / ${quiz.questions.length} answered</span>
+          <span>${pct}%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      </div>` : ''}
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function signOut() {
+  auth.signOut().then(() => window.location.href = 'nuggets.html');
+}
+</script>
+</body>
+</html>

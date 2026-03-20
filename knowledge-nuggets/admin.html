@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Insurance Knowledge Nuggets</title>
+<link rel="stylesheet" href="css/global.css">
+<style>
+  .admin-layout {
+    display: flex;
+    min-height: calc(100vh - 52px);
+  }
+
+  /* Sidebar */
+  .sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 1.5rem 0;
+    position: sticky;
+    top: 52px;
+    height: calc(100vh - 52px);
+    overflow-y: auto;
+  }
+  .sidebar-section {
+    padding: 0 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .sidebar-label {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    padding: 0 0.5rem;
+  }
+  .sidebar-nav a {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 10px; border-radius: var(--radius-sm);
+    font-size: 13px; font-weight: 500; color: var(--text2);
+    text-decoration: none; transition: all 0.12s;
+  }
+  .sidebar-nav a:hover { background: var(--surface2); color: var(--text); }
+  .sidebar-nav a.active { background: var(--gold-dim); color: var(--gold); }
+  .sidebar-icon { font-size: 14px; width: 18px; text-align: center; }
+
+  /* Main content */
+  .admin-main {
+    flex: 1;
+    overflow: hidden;
+    padding: 2rem 1.5rem 4rem;
+    max-width: 900px;
+  }
+
+  .page-title {
+    font-size: 22px; font-weight: 700; margin-bottom: 0.25rem;
+  }
+  .page-sub { color: var(--text2); font-size: 13px; margin-bottom: 1.5rem; }
+
+  /* Stats row */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .stat-tile {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.1rem;
+  }
+  .stat-tile-value {
+    font-family: var(--font-display);
+    font-size: 28px; font-weight: 700;
+    color: var(--gold2); line-height: 1; margin-bottom: 4px;
+  }
+  .stat-tile-label { font-size: 12px; color: var(--text2); }
+
+  /* Data table */
+  .data-table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    margin-bottom: 2rem;
+  }
+  .data-table-head {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .data-table-title { font-size: 14px; font-weight: 600; flex: 1; }
+  table {
+    width: 100%; border-collapse: collapse;
+    font-size: 13px;
+  }
+  th {
+    padding: 10px 1.25rem;
+    text-align: left; font-size: 11px; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--text3);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: 11px 1.25rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: middle;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  .score-pill {
+    display: inline-flex; align-items: center;
+    padding: 3px 10px; border-radius: 20px;
+    font-size: 12px; font-weight: 600;
+  }
+  .score-hi  { background: rgba(40,100,60,0.3);  color: #6fcf97; }
+  .score-mid { background: rgba(200,168,75,0.15); color: var(--gold); }
+  .score-lo  { background: rgba(80,20,20,0.4);   color: #f07070; }
+
+  /* Section tabs */
+  .section-tabs {
+    display: flex; gap: 4px; margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-tab {
+    padding: 8px 16px; font-size: 13px; font-weight: 500;
+    color: var(--text2); cursor: pointer; border: none;
+    background: transparent; font-family: var(--font-body);
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+    transition: all 0.12s;
+  }
+  .section-tab:hover { color: var(--text); }
+  .section-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* Add quiz form */
+  .quiz-builder {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .quiz-builder h3 {
+    font-size: 16px; font-weight: 600; margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem; border-bottom: 1px solid var(--border);
+  }
+  .form-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+    margin-bottom: 0.5rem;
+  }
+  .form-row-3 { grid-template-columns: 1fr 1fr 1fr; }
+  @media(max-width: 600px) { .form-row, .form-row-3 { grid-template-columns: 1fr; } }
+
+  .question-builder {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.1rem;
+    margin-bottom: 0.75rem;
+    position: relative;
+  }
+  .q-builder-head {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 0.75rem;
+  }
+  .q-builder-num {
+    font-size: 11px; font-weight: 600; color: var(--gold);
+    background: var(--gold-dim); border: 1px solid rgba(200,168,75,0.25);
+    border-radius: 20px; padding: 2px 10px;
+  }
+  .btn-remove-q {
+    margin-left: auto; background: none; border: none;
+    color: var(--text3); cursor: pointer; font-size: 16px;
+    transition: color 0.12s;
+  }
+  .btn-remove-q:hover { color: var(--error-tx); }
+
+  .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  @media(max-width: 600px) { .options-grid { grid-template-columns: 1fr; } }
+
+  .opt-row {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .opt-row input[type="radio"] { flex-shrink: 0; accent-color: var(--gold); }
+  .opt-row input[type="text"] { flex: 1; }
+  .opt-label { font-size: 11px; color: var(--text3); flex-shrink: 0; width: 22px; }
+
+  .add-q-bar {
+    display: flex; gap: 8px; align-items: center;
+    padding: 0.75rem 0;
+  }
+
+  /* User detail modal */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.7);
+    display: flex; align-items: flex-start; justify-content: center;
+    padding: 3rem 1rem;
+    display: none;
+    overflow-y: auto;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border-md);
+    border-radius: var(--radius-lg);
+    width: 100%; max-width: 640px;
+    padding: 1.75rem;
+    position: relative;
+  }
+  .modal-close {
+    position: absolute; top: 1.1rem; right: 1.1rem;
+    background: none; border: none; color: var(--text2);
+    font-size: 20px; cursor: pointer; line-height: 1;
+  }
+  .modal h3 { font-size: 18px; margin-bottom: 0.25rem; }
+  .modal-sub { color: var(--text2); font-size: 13px; margin-bottom: 1.5rem; }
+
+  .breakdown-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 0; border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .breakdown-row:last-child { border-bottom: none; }
+  .breakdown-quiz { flex: 1; font-weight: 500; }
+  .breakdown-bar-wrap {
+    width: 120px; height: 5px; background: var(--surface3); border-radius: 3px; overflow: hidden;
+  }
+  .breakdown-bar-fill {
+    height: 100%; border-radius: 3px;
+    background: var(--gold);
+  }
+
+  .filter-row {
+    display: flex; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap;
+  }
+  .filter-row input, .filter-row select {
+    width: auto; flex: 1; min-width: 160px; font-size: 13px; padding: 7px 12px;
+  }
+
+  .empty-state {
+    text-align: center; padding: 3rem 1rem; color: var(--text2);
+  }
+  .empty-state .empty-icon { font-size: 36px; margin-bottom: 0.75rem; }
+
+  .user-row { cursor: pointer; }
+  .user-row:hover td { background: rgba(200,168,75,0.04) !important; }
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-brand">Knowledge Nuggets <span>/ Admin</span></div>
+  <div class="topnav-spacer"></div>
+  <div class="topnav-user">
+    <div class="topnav-avatar" id="navAvatar">A</div>
+  </div>
+  <a href="quizzes.html" class="btn btn-ghost btn-sm">← Quizzes</a>
+  <button class="btn btn-ghost btn-sm" onclick="auth.signOut().then(() => window.location.href='nuggets.html')">Sign out</button>
+</nav>
+
+<div class="admin-layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Admin</div>
+      <nav class="sidebar-nav">
+        <a href="#" class="active" onclick="switchSection('overview',this)"><span class="sidebar-icon">📊</span>Overview</a>
+        <a href="#" onclick="switchSection('users',this)"><span class="sidebar-icon">👥</span>Users</a>
+        <a href="#" onclick="switchSection('results',this)"><span class="sidebar-icon">📋</span>All results</a>
+        <a href="#" onclick="switchSection('quizzes',this)"><span class="sidebar-icon">📝</span>Manage quizzes</a>
+        <a href="#" onclick="switchSection('addquiz',this)"><span class="sidebar-icon">➕</span>Add new quiz</a>
+      </nav>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+
+    <!-- OVERVIEW -->
+    <section class="tab-panel active" id="sec-overview">
+      <h1 class="page-title">Overview</h1>
+      <p class="page-sub">Platform-wide snapshot.</p>
+      <div class="stats-grid" id="overviewStats">
+        <div class="stat-tile"><div class="stat-tile-value" id="ov-users">—</div><div class="stat-tile-label">Registered users</div></div>
+        <div class="stat-tile"><div class="stat-tile-value" id="ov-attempts">—</div><div class="stat-tile-label">Quiz attempts</div></div>
+        <div class="stat-tile"><div class="stat-tile-value" id="ov-completed">—</div><div class="stat-tile-label">Completed quizzes</div></div>
+        <div class="stat-tile"><div class="stat-tile-value" id="ov-avg">—</div><div class="stat-tile-label">Avg. score</div></div>
+        <div class="stat-tile"><div class="stat-tile-value" id="ov-quizzes">—</div><div class="stat-tile-label">Active quizzes</div></div>
+      </div>
+
+      <div class="data-table-wrap">
+        <div class="data-table-head">
+          <div class="data-table-title">Recent activity</div>
+        </div>
+        <table>
+          <thead><tr>
+            <th>User</th><th>Quiz</th><th>Score</th><th>When</th>
+          </tr></thead>
+          <tbody id="recentTable"><tr><td colspan="4" style="color:var(--text2);padding:1.5rem">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- USERS -->
+    <section class="tab-panel" id="sec-users">
+      <h1 class="page-title">Users</h1>
+      <p class="page-sub">Click a user to see their full quiz breakdown.</p>
+      <div class="filter-row">
+        <input type="text" id="userSearch" placeholder="Search by name or email…" oninput="filterUsers()">
+        <select id="userFilter" onchange="filterUsers()">
+          <option value="all">All users</option>
+          <option value="active">Has attempted quizzes</option>
+          <option value="admin">Admins only</option>
+        </select>
+      </div>
+      <div class="data-table-wrap">
+        <div class="data-table-head">
+          <div class="data-table-title">User roster</div>
+          <span class="badge badge-gray" id="userCount">0 users</span>
+        </div>
+        <table>
+          <thead><tr>
+            <th>Name</th><th>Email</th><th>Role</th><th>Quizzes taken</th><th>Avg score</th><th>Joined</th>
+          </tr></thead>
+          <tbody id="usersTable"><tr><td colspan="6" style="color:var(--text2);padding:1.5rem">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ALL RESULTS -->
+    <section class="tab-panel" id="sec-results">
+      <h1 class="page-title">All results</h1>
+      <p class="page-sub">Every quiz submission across all users.</p>
+      <div class="filter-row">
+        <input type="text" id="resultSearch" placeholder="Search user or quiz…" oninput="filterResults()">
+        <select id="resultQuizFilter" onchange="filterResults()">
+          <option value="all">All quizzes</option>
+        </select>
+        <select id="resultStatusFilter" onchange="filterResults()">
+          <option value="all">All statuses</option>
+          <option value="completed">Completed only</option>
+          <option value="incomplete">Incomplete</option>
+        </select>
+      </div>
+      <div class="data-table-wrap">
+        <div class="data-table-head">
+          <div class="data-table-title">Submissions</div>
+          <span class="badge badge-gray" id="resultCount">0 results</span>
+        </div>
+        <table>
+          <thead><tr>
+            <th>User</th><th>Quiz</th><th>Score</th><th>%</th><th>Status</th><th>Date</th>
+          </tr></thead>
+          <tbody id="resultsTable"><tr><td colspan="6" style="color:var(--text2);padding:1.5rem">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- MANAGE QUIZZES -->
+    <section class="tab-panel" id="sec-quizzes">
+      <h1 class="page-title">Manage quizzes</h1>
+      <p class="page-sub">Current quiz library loaded from <code>js/quiz-data.js</code>. Edit that file to modify existing quizzes.</p>
+      <div id="quizManageList"></div>
+    </section>
+
+    <!-- ADD QUIZ -->
+    <section class="tab-panel" id="sec-addquiz">
+      <h1 class="page-title">Add new quiz</h1>
+      <p class="page-sub">Build a new quiz below. When done, copy the generated code into <code>js/quiz-data.js</code>.</p>
+
+      <div class="quiz-builder">
+        <h3>Quiz details</h3>
+        <div class="form-row">
+          <div class="field">
+            <label class="field-label">Quiz title</label>
+            <input type="text" id="nb-title" placeholder="e.g. Commercial Auto">
+          </div>
+          <div class="field">
+            <label class="field-label">Subtitle</label>
+            <input type="text" id="nb-subtitle" placeholder="Short description">
+          </div>
+        </div>
+        <div class="form-row form-row-3">
+          <div class="field">
+            <label class="field-label">Category</label>
+            <input type="text" id="nb-cat" placeholder="e.g. Auto" list="cat-list">
+            <datalist id="cat-list">
+              <option value="Liability"><option value="Property"><option value="Auto"><option value="Life &amp; Health"><option value="E&amp;O">
+            </datalist>
+          </div>
+          <div class="field">
+            <label class="field-label">Difficulty</label>
+            <select id="nb-diff">
+              <option>Foundational</option>
+              <option selected>Intermediate</option>
+              <option>Advanced</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="field-label">Icon (emoji)</label>
+            <input type="text" id="nb-icon" placeholder="🚗" maxlength="2">
+          </div>
+        </div>
+      </div>
+
+      <div id="questionsBuilderList"></div>
+
+      <div class="add-q-bar">
+        <button class="btn btn-outline" onclick="addQuestion()">+ Add question</button>
+        <button class="btn btn-gold" onclick="generateCode()">Generate code →</button>
+      </div>
+
+      <div id="generatedCodeWrap" style="display:none; margin-top:1.5rem;">
+        <div class="quiz-builder">
+          <h3>Generated code — copy into quiz-data.js</h3>
+          <p style="font-size:13px;color:var(--text2);margin-bottom:1rem;">
+            Add this object to the <code>QUIZ_LIBRARY</code> array in <code>js/quiz-data.js</code>.
+          </p>
+          <textarea id="generatedCode" rows="20" style="font-family:monospace;font-size:12px;line-height:1.5;resize:vertical;" readonly></textarea>
+          <div style="margin-top:0.75rem;display:flex;gap:8px;">
+            <button class="btn btn-gold" onclick="copyCode()">Copy to clipboard</button>
+            <button class="btn btn-ghost" onclick="downloadCode()">Download .js snippet</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- User detail modal -->
+<div class="modal-overlay" id="userModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <h3 id="modalUserName">User</h3>
+    <div class="modal-sub" id="modalUserEmail"></div>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/quiz-data.js"></script>
+<script>
+firebase.initializeApp(FIREBASE_CONFIG);
+const auth = firebase.auth();
+const db   = firebase.firestore();
+
+let allUsers   = [];
+let allResults = [];
+let qBuilderCount = 0;
+
+// ── Auth guard ──────────────────────────────────────────────
+auth.onAuthStateChanged(async user => {
+  if (!user) { window.location.href = 'nuggets.html'; return; }
+  const doc = await db.collection('users').doc(user.uid).get();
+  if (!doc.exists || doc.data().role !== 'admin') {
+    window.location.href = 'quizzes.html';
+    return;
+  }
+  document.getElementById('navAvatar').textContent = (user.displayName || user.email || 'A').charAt(0).toUpperCase();
+  await loadData();
+});
+
+// ── Data loading ────────────────────────────────────────────
+async function loadData() {
+  const [usersSnap, resultsSnap] = await Promise.all([
+    db.collection('users').get(),
+    db.collection('results').orderBy('answeredAt', 'desc').limit(200).get()
+  ]);
+
+  allUsers = usersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+  allResults = resultsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+  renderOverview();
+  renderUsers();
+  renderResults();
+  renderQuizManage();
+  populateQuizFilter();
+}
+
+// ── Section switching ───────────────────────────────────────
+function switchSection(id, el) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+  document.getElementById('sec-' + id).classList.add('active');
+  el.classList.add('active');
+  return false;
+}
+
+// ── Overview ────────────────────────────────────────────────
+function renderOverview() {
+  document.getElementById('ov-users').textContent     = allUsers.length;
+  document.getElementById('ov-attempts').textContent  = allResults.length;
+  document.getElementById('ov-completed').textContent = allResults.filter(r => r.completed).length;
+  document.getElementById('ov-quizzes').textContent   = QUIZ_LIBRARY.length;
+  const scores = allResults.map(r => r.pct).filter(Boolean);
+  const avg = scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : 0;
+  document.getElementById('ov-avg').textContent = avg + '%';
+
+  const tbody = document.getElementById('recentTable');
+  if (!allResults.length) {
+    tbody.innerHTML = '<tr><td colspan="4" class="text-muted" style="padding:1.5rem;text-align:center">No activity yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = allResults.slice(0,20).map(r => `
+    <tr>
+      <td>${esc(r.displayName || r.email || '—')}</td>
+      <td>${esc(r.quizTitle || r.quizId)}</td>
+      <td><span class="score-pill ${scoreCls(r.pct)}">${r.score}/${r.maxScore}</span></td>
+      <td class="text-muted">${fmtDate(r.answeredAt)}</td>
+    </tr>
+  `).join('');
+}
+
+// ── Users ───────────────────────────────────────────────────
+function renderUsers() {
+  const tbody = document.getElementById('usersTable');
+  const filtered = filterUsersData();
+  document.getElementById('userCount').textContent = filtered.length + ' users';
+
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">👥</div>No users found.</div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(u => {
+    const userRes = allResults.filter(r => r.uid === u.id);
+    const scores  = userRes.map(r => r.pct).filter(Boolean);
+    const avg = scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : null;
+    return `
+      <tr class="user-row" onclick="openUserModal('${u.id}')">
+        <td style="font-weight:500">${esc(u.displayName || '—')}</td>
+        <td class="text-muted">${esc(u.email || '—')}</td>
+        <td><span class="badge ${u.role==='admin'?'badge-gold':'badge-gray'}">${u.role||'user'}</span></td>
+        <td>${userRes.length}</td>
+        <td>${avg !== null ? `<span class="score-pill ${scoreCls(avg)}">${avg}%</span>` : '—'}</td>
+        <td class="text-muted">${fmtDate(u.createdAt)}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function filterUsersData() {
+  const q = document.getElementById('userSearch').value.toLowerCase();
+  const f = document.getElementById('userFilter').value;
+  return allUsers.filter(u => {
+    const matchText = !q || (u.displayName||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q);
+    const matchFilter = f === 'all' ? true
+      : f === 'active' ? allResults.some(r => r.uid === u.id)
+      : f === 'admin'  ? u.role === 'admin'
+      : true;
+    return matchText && matchFilter;
+  });
+}
+function filterUsers() { renderUsers(); }
+
+// ── User modal ──────────────────────────────────────────────
+function openUserModal(uid) {
+  const u = allUsers.find(x => x.id === uid);
+  if (!u) return;
+  document.getElementById('modalUserName').textContent  = u.displayName || '—';
+  document.getElementById('modalUserEmail').textContent = u.email || '—';
+
+  const userRes = allResults.filter(r => r.uid === uid);
+  const byQuiz  = {};
+  userRes.forEach(r => {
+    if (!byQuiz[r.quizId] || r.answeredAt > byQuiz[r.quizId].answeredAt) byQuiz[r.quizId] = r;
+  });
+
+  const rows = Object.values(byQuiz).map(r => `
+    <div class="breakdown-row">
+      <div class="breakdown-quiz">${esc(r.quizTitle || r.quizId)}</div>
+      <div class="breakdown-bar-wrap"><div class="breakdown-bar-fill" style="width:${r.pct||0}%"></div></div>
+      <span class="score-pill ${scoreCls(r.pct)}">${r.score}/${r.maxScore} (${Math.round(r.pct||0)}%)</span>
+      <span class="badge ${r.completed ? 'badge-green' : 'badge-gray'}">${r.completed ? 'Done' : 'Started'}</span>
+    </div>
+  `).join('');
+
+  document.getElementById('modalContent').innerHTML = rows || '<p class="text-muted text-sm mt-2">No quiz attempts yet.</p>';
+  document.getElementById('userModal').classList.add('open');
+}
+function closeModal() { document.getElementById('userModal').classList.remove('open'); }
+
+// ── Results ─────────────────────────────────────────────────
+function populateQuizFilter() {
+  const sel = document.getElementById('resultQuizFilter');
+  QUIZ_LIBRARY.forEach(q => {
+    const opt = document.createElement('option');
+    opt.value = q.id;
+    opt.textContent = q.title;
+    sel.appendChild(opt);
+  });
+}
+
+function renderResults() {
+  const tbody = document.getElementById('resultsTable');
+  const filtered = filterResultsData();
+  document.getElementById('resultCount').textContent = filtered.length + ' results';
+
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">📋</div>No results found.</div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(r => `
+    <tr>
+      <td>${esc(r.displayName || r.email || '—')}</td>
+      <td>${esc(r.quizTitle || r.quizId)}</td>
+      <td>${r.score} / ${r.maxScore}</td>
+      <td><span class="score-pill ${scoreCls(r.pct)}">${Math.round(r.pct||0)}%</span></td>
+      <td><span class="badge ${r.completed ? 'badge-green' : 'badge-gray'}">${r.completed ? 'Complete' : 'In progress'}</span></td>
+      <td class="text-muted">${fmtDate(r.answeredAt)}</td>
+    </tr>
+  `).join('');
+}
+
+function filterResultsData() {
+  const q  = document.getElementById('resultSearch').value.toLowerCase();
+  const qf = document.getElementById('resultQuizFilter').value;
+  const sf = document.getElementById('resultStatusFilter').value;
+  return allResults.filter(r => {
+    const matchText = !q || (r.displayName||r.email||'').toLowerCase().includes(q) || (r.quizTitle||'').toLowerCase().includes(q);
+    const matchQuiz = qf === 'all' || r.quizId === qf;
+    const matchStatus = sf === 'all' ? true : sf === 'completed' ? r.completed : !r.completed;
+    return matchText && matchQuiz && matchStatus;
+  });
+}
+function filterResults() { renderResults(); }
+
+// ── Quiz manage ─────────────────────────────────────────────
+function renderQuizManage() {
+  const list = document.getElementById('quizManageList');
+  list.innerHTML = QUIZ_LIBRARY.map(q => {
+    const attempts = allResults.filter(r => r.quizId === q.id).length;
+    const scores   = allResults.filter(r => r.quizId === q.id && r.pct).map(r => r.pct);
+    const avg = scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : null;
+    return `
+      <div class="quiz-builder" style="margin-bottom:1rem;">
+        <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+          <div style="font-size:24px">${q.icon}</div>
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:15px;margin-bottom:4px">${esc(q.title)}</div>
+            <div style="font-size:13px;color:var(--text2);margin-bottom:8px">${esc(q.subtitle)}</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <span class="badge badge-gray">${q.questions.length} questions</span>
+              <span class="badge badge-gray">${q.category}</span>
+              <span class="badge badge-gray">${q.difficulty}</span>
+              <span class="badge badge-gold">${attempts} attempts</span>
+              ${avg !== null ? `<span class="badge badge-green">Avg ${avg}%</span>` : ''}
+            </div>
+          </div>
+          <a href="quiz.html?id=${q.id}" class="btn btn-ghost btn-sm">Preview →</a>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ── Quiz builder ─────────────────────────────────────────────
+function addQuestion() {
+  const list = document.getElementById('questionsBuilderList');
+  const i = qBuilderCount++;
+  const div = document.createElement('div');
+  div.className = 'question-builder';
+  div.id = `qb-${i}`;
+  div.innerHTML = `
+    <div class="q-builder-head">
+      <span class="q-builder-num">Q${i+1}</span>
+      <button class="btn-remove-q" onclick="removeQ(${i})" title="Remove">×</button>
+    </div>
+    <div class="field">
+      <label class="field-label">Question text</label>
+      <textarea id="qt-${i}" rows="2" placeholder="Enter the question…"></textarea>
+    </div>
+    <div class="field">
+      <label class="field-label">Answer options (select the correct one)</label>
+      <div class="options-grid">
+        ${['A','B','C','D'].map((l,j) => `
+          <div class="opt-row">
+            <input type="radio" name="correct-${i}" value="${j}" id="cr-${i}-${j}">
+            <span class="opt-label">${l}</span>
+            <input type="text" id="qo-${i}-${j}" placeholder="Option ${l}">
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    <div class="field">
+      <label class="field-label">Per-option feedback (one per line, A→D order)</label>
+      <textarea id="qf-${i}" rows="4" placeholder="Feedback for A&#10;Feedback for B&#10;Feedback for C&#10;Feedback for D"></textarea>
+    </div>
+    <div class="field">
+      <label class="field-label">Answer key summary</label>
+      <input type="text" id="qk-${i}" placeholder="Brief correct-answer explanation for the key strip">
+    </div>
+  `;
+  list.appendChild(div);
+}
+
+function removeQ(i) {
+  const el = document.getElementById(`qb-${i}`);
+  if (el) el.remove();
+}
+
+function generateCode() {
+  const title    = document.getElementById('nb-title').value.trim();
+  const subtitle = document.getElementById('nb-subtitle').value.trim();
+  const cat      = document.getElementById('nb-cat').value.trim();
+  const diff     = document.getElementById('nb-diff').value;
+  const icon     = document.getElementById('nb-icon').value.trim() || '📋';
+
+  if (!title) { toast('Enter a quiz title.', 'err'); return; }
+
+  const qDivs = document.querySelectorAll('.question-builder');
+  if (!qDivs.length) { toast('Add at least one question.', 'err'); return; }
+
+  const questions = [];
+  let valid = true;
+  qDivs.forEach(div => {
+    const idx = div.id.replace('qb-','');
+    const qText = (document.getElementById(`qt-${idx}`)?.value||'').trim();
+    const opts  = ['A','B','C','D'].map((_,j) => (document.getElementById(`qo-${idx}-${j}`)?.value||'').trim());
+    const correctEl = document.querySelector(`input[name="correct-${idx}"]:checked`);
+    const fbs   = (document.getElementById(`qf-${idx}`)?.value||'').split('\n').map(s=>s.trim());
+    const key   = (document.getElementById(`qk-${idx}`)?.value||'').trim();
+
+    if (!qText || opts.some(o=>!o) || !correctEl) { valid = false; return; }
+    questions.push({ q: qText, options: opts, answer: parseInt(correctEl.value), feedback: fbs, key });
+  });
+
+  if (!valid) { toast('Fill in all question fields and select correct answers.', 'err'); return; }
+
+  const id = title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+  const obj = { id, title, subtitle, icon, category: cat, difficulty: diff, questions };
+  const code = JSON.stringify(obj, null, 2).replace(/"([^"]+)":/g, '$1:');
+  const snippet = `// Add this to QUIZ_LIBRARY in js/quiz-data.js\n${code},`;
+
+  document.getElementById('generatedCode').value = snippet;
+  document.getElementById('generatedCodeWrap').style.display = 'block';
+  document.getElementById('generatedCodeWrap').scrollIntoView({ behavior: 'smooth' });
+}
+
+function copyCode() {
+  const ta = document.getElementById('generatedCode');
+  ta.select();
+  navigator.clipboard.writeText(ta.value).then(() => toast('Copied to clipboard!', 'ok'));
+}
+
+function downloadCode() {
+  const code = document.getElementById('generatedCode').value;
+  const id = document.getElementById('nb-title').value.trim().toLowerCase().replace(/\s+/g,'-') || 'new-quiz';
+  const blob = new Blob([code], { type: 'text/javascript' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `quiz-${id}.js`;
+  a.click();
+}
+
+// ── Helpers ──────────────────────────────────────────────────
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function scoreCls(pct) {
+  pct = parseFloat(pct)||0;
+  return pct >= 75 ? 'score-hi' : pct >= 55 ? 'score-mid' : 'score-lo';
+}
+function fmtDate(ts) {
+  if (!ts) return '—';
+  const d = ts.toDate ? ts.toDate() : new Date(ts.seconds * 1000);
+  return d.toLocaleDateString('en-CA', { month:'short', day:'numeric', year:'numeric' });
+}
+function toast(msg, type='ok') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show toast-' + type;
+  setTimeout(() => t.className='', 3500);
+}
+
+// Close modal on overlay click
+document.getElementById('userModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+</script>
+</body>
+</html>
